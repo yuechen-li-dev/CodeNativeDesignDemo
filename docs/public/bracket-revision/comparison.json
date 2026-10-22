@@ -1,0 +1,156 @@
+{
+  "schema": "code-native-design-review/1",
+  "beforeRun": {
+    "schema": "code-native-design-demo/1",
+    "aetherisRevision": "81918d9c14a624f1168cd3919c2df4cc0c8b27ba",
+    "demoRevision": "64ee70615d5144199b73e717bd568f987d893538",
+    "demoSourceDirty": false,
+    "runUrl": "https://github.com/yuechen-li-dev/CodeNativeDesignDemo/actions/runs/39709965174",
+    "cases": {
+      "nominal": {
+        "dimensions": {
+          "Width": 80,
+          "Height": 60,
+          "LegWidth": 20,
+          "LegHeight": 20,
+          "Thickness": 12,
+          "HoleX": 60,
+          "HoleY": 10,
+          "ShaftDiameter": 6,
+          "EntryDiameter": 12,
+          "Volume": 28347.61065788307
+        },
+        "hashes": {
+          "Bracket.svg": "e47ee5871eb05e084a372ef3021fb9d868115d4b8740fc519e320f3b430e6b08",
+          "Bracket.pdf": "2703fabe97726a34e55ba156e7704b08de6613e1ce04b68ef79094621408012a",
+          "Bracket.step": "348d3206b317a295ffd18ac23a1830c2aee7e0d6f82855dc7e98db77fbd71beb",
+          "Bracket.glb": "e63005727c5df053c7096523dca4f1c2e1cfe4b5da3ddcf48d5b580cc0daedc2"
+        },
+        "parserRoute": "UnifiedMechanical",
+        "validationLevel": "Built",
+        "pdfReconstructionMatches": true,
+        "incompleteDrawingsRejected": 9,
+        "stepPmiItems": 2,
+        "glbPmiItems": 2,
+        "processCapabilityVerified": false
+      },
+      "variant": {
+        "dimensions": {
+          "Width": 100,
+          "Height": 75,
+          "LegWidth": 25,
+          "LegHeight": 24,
+          "Thickness": 15,
+          "HoleX": 70,
+          "HoleY": 12,
+          "ShaftDiameter": 8,
+          "EntryDiameter": 14,
+          "Volume": 54229.64609372691
+        },
+        "hashes": {
+          "Bracket.svg": "8a913f0095f16accce8d23f65a5914e03569f49416f5a9d6a316bcb3de93b6be",
+          "Bracket.pdf": "4d644881a20dce9432476b08a7649f64691773f4b87cc35b98e32d003af77cef",
+          "Bracket.step": "fc0eda79fd860a4aef5fcdb39e60c3bdd7e115e2f44e838391dac74e2cf3ed26",
+          "Bracket.glb": "06362b5938643ecbfd1d77f721dd3274c1efe4118376f35364dfea31539297ad"
+        },
+        "parserRoute": "UnifiedMechanical",
+        "validationLevel": "Built",
+        "pdfReconstructionMatches": true,
+        "incompleteDrawingsRejected": 9,
+        "stepPmiItems": 2,
+        "glbPmiItems": 2,
+        "processCapabilityVerified": false
+      }
+    }
+  },
+  "afterRun": {
+    "schema": "code-native-design-demo/1",
+    "aetherisRevision": "81918d9c14a624f1168cd3919c2df4cc0c8b27ba",
+    "demoRevision": "017fafb77b1873ac050808b4aae83883630e0700",
+    "demoSourceDirty": false,
+    "runUrl": "https://github.com/yuechen-li-dev/CodeNativeDesignDemo/actions/runs/39709965174",
+    "cases": {
+      "nominal": {
+        "dimensions": {
+          "Width": 96,
+          "Height": 60,
+          "LegWidth": 20,
+          "LegHeight": 20,
+          "Thickness": 12,
+          "HoleX": 76,
+          "HoleY": 10,
+          "ShaftDiameter": 6,
+          "EntryDiameter": 12,
+          "Volume": 32187.61065788307
+        },
+        "hashes": {
+          "Bracket.svg": "da5a215617f8a515d3bc8054964c8e7819108165b01ff56d58d6bbb50b5a30c7",
+          "Bracket.pdf": "5a419c9a950569756ba0e12b7577de9b495a635c952d32b23cda0503cef95c36",
+          "Bracket.step": "42aeecf3695850133e6a7340fac5bb96c09485bdf278df88b96f4298ff2ff209",
+          "Bracket.glb": "a207fefc607d72e32eafaed18b5ed8653dc62ea2a9c7de4db114d85386c13a4f"
+        },
+        "parserRoute": "UnifiedMechanical",
+        "validationLevel": "Built",
+        "pdfReconstructionMatches": true,
+        "incompleteDrawingsRejected": 9,
+        "stepPmiItems": 2,
+        "glbPmiItems": 2,
+        "processCapabilityVerified": false
+      },
+      "variant": {
+        "dimensions": {
+          "Width": 100,
+          "Height": 75,
+          "LegWidth": 25,
+          "LegHeight": 24,
+          "Thickness": 15,
+          "HoleX": 70,
+          "HoleY": 12,
+          "ShaftDiameter": 8,
+          "EntryDiameter": 14,
+          "Volume": 54229.64609372691
+        },
+        "hashes": {
+          "Bracket.svg": "8a913f0095f16accce8d23f65a5914e03569f49416f5a9d6a316bcb3de93b6be",
+          "Bracket.pdf": "4d644881a20dce9432476b08a7649f64691773f4b87cc35b98e32d003af77cef",
+          "Bracket.step": "fc0eda79fd860a4aef5fcdb39e60c3bdd7e115e2f44e838391dac74e2cf3ed26",
+          "Bracket.glb": "06362b5938643ecbfd1d77f721dd3274c1efe4118376f35364dfea31539297ad"
+        },
+        "parserRoute": "UnifiedMechanical",
+        "validationLevel": "Built",
+        "pdfReconstructionMatches": true,
+        "incompleteDrawingsRejected": 9,
+        "stepPmiItems": 2,
+        "glbPmiItems": 2,
+        "processCapabilityVerified": false
+      }
+    }
+  },
+  "changedDimensionsMillimetres": {
+    "Width": {
+      "before": 80,
+      "after": 96,
+      "delta": 16
+    },
+    "HoleX": {
+      "before": 60,
+      "after": 76,
+      "delta": 16
+    }
+  },
+  "exactConstructionVolumeDeltaCubicMillimetres": 3840.0,
+  "independentBrepMassDeltaCubicMillimetres": 3839.9999999999636,
+  "armExtensionVolumeCheckCubicMillimetres": 3840,
+  "unchangedControlByteEqual": {
+    "Bracket.step": true,
+    "Bracket.pdf": true
+  },
+  "semanticRequirementsPreserved": true,
+  "previewSource": "Actual Drawing IR projected edge points, with camera origin and page scale removed.",
+  "previewHashes": {
+    "before-drawing.png": "81d1fadebf5b3695378f134664d7d2763f6a78951fc69f478a1d8fef40837ab2",
+    "top-overlay.png": "3973d41dcb4d334c854710ac09feb0087a1dcb9b6d9e697bb52ec24a3a5e881a",
+    "geometry-before-after.png": "e121f755cdc06b7112b61f114dd8bd6c198bbe4c299a78d0fcb71f94e8fa945c",
+    "after-drawing.png": "fac9aa84f6b428c6706f6fbb3f3a83feaec64f0e8d59a3feafe458ea6c5faeac"
+  }
+}

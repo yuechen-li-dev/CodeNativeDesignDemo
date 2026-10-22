@@ -6,8 +6,8 @@ var output = Path.GetFullPath(args[0]);
 
 // Millimetres. Edit these specifications, review the diff, let CI build the parts.
 MakeBracket(new BracketDimensions(
-    Width: 80, Height: 60, LegWidth: 20, LegHeight: 20, Thickness: 12,
-    HoleX: 60, HoleY: 10, ShaftDiameter: 6, EntryDiameter: 12),
+    Width: 96, Height: 60, LegWidth: 20, LegHeight: 20, Thickness: 12,
+    HoleX: 76, HoleY: 10, ShaftDiameter: 6, EntryDiameter: 12),
     Path.Combine(output, "nominal"));
 
 MakeBracket(new BracketDimensions(
