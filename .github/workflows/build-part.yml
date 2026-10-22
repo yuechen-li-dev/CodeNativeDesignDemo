@@ -1,0 +1,83 @@
+name: Build engineering artifacts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bracket:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read compiler pin
+        id: compiler
+        shell: pwsh
+        run: |
+          $pin = (Get-Content aetheris-revision.txt -Raw).Trim()
+          if ($pin -notmatch '^[0-9a-f]{40}$') { throw 'Invalid Aetheris revision.' }
+          "revision=$pin" >> $env:GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          repository: yuechen-li-dev/Aetheris
+          ref: ${{ steps.compiler.outputs.revision }}
+          path: dependencies/aetheris
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Read managed compiler dependency pin
+        id: wgsl
+        shell: pwsh
+        run: |
+          $pin = (Get-Content dependencies/aetheris/scripts/managed-wgsl-commit-pin.txt -Raw).Trim()
+          if ($pin -notmatch '^[0-9a-f]{40}$') { throw 'Invalid managed compiler revision.' }
+          "revision=$pin" >> $env:GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          repository: yuechen-li-dev/Copeland
+          ref: ${{ steps.wgsl.outputs.revision }}
+          path: dependencies/copeland
+          persist-credentials: false
+      - name: Prepare source-pinned dependency
+        shell: pwsh
+        working-directory: dependencies/aetheris
+        run: ./scripts/prepare-managed-wgsl.ps1 -CopelandRoot "$env:GITHUB_WORKSPACE/dependencies/copeland"
+      - name: Check bracket compiler regressions
+        shell: pwsh
+        working-directory: dependencies/aetheris
+        run: |
+          dotnet build Aetheris.Kernel.Firmament.Tests -c Release -m:1 -nr:false -p:UseSharedCompilation=false
+          if ($LASTEXITCODE -ne 0) { throw 'Regression test build failed.' }
+          dotnet test Aetheris.Kernel.Firmament.Tests -c Release --no-build -m:1 -nr:false --filter "FullyQualifiedName~ComposedHoleFamilyTests|FullyQualifiedName~CodeNativeBracketRehearsalTests|FullyQualifiedName~PrismaticSectionStackHoleTraversalTests" --logger "trx;LogFileName=bracket.trx" --results-directory "$env:GITHUB_WORKSPACE/artifacts/local/tests" -- RunConfiguration.MaxCpuCount=1
+          if ($LASTEXITCODE -ne 0) { throw 'Bracket regressions failed.' }
+      - name: Build, export, and reconstruct from PDF alone
+        shell: pwsh
+        run: ./scripts/Qualify.ps1
+      - name: Upload qualified parts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bracket-${{ github.sha }}
+          path: artifacts/local/build/deliverables/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ github.sha }}
+          path: artifacts/local/tests/
+          if-no-files-found: warn
