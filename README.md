@@ -2,7 +2,12 @@
 
 [![Build engineering artifacts](https://github.com/yuechen-li-dev/CodeNativeDesignDemo/actions/workflows/build-part.yml/badge.svg)](https://github.com/yuechen-li-dev/CodeNativeDesignDemo/actions/workflows/build-part.yml)
 
-Edit a part specification. Review the diff. Let CI produce the part and drawing.
+This repo demonstrates software pipeline style workflow for mechanical design using the Aetheris geometry kernel headlessly. 
+
+It is primarily to demonstrate:
+1. Editing the part specification with a text editor or via LLMs. 
+2. Review the dimensional diff for the part in code, exactly as you would for any software. 
+3. Using CI/CD produce the part model and drawing as any other software artifact.
 
 This first example builds a **single parametric machined L bracket with a
 countersunk through hole** using Aetheris/Firmament. Two rectangular guides define
