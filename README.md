@@ -46,6 +46,8 @@ H1 outward by 16 mm, preserving its 20 mm distance from the right edge. Thicknes
 leg widths, hole diameters and angle remain unchanged. The resized control part
 must retain byte-identical STEP and PDF. Git revisions identify the compared
 working states; the unsigned drawing family's planned release remains 1.0.0.
+See the [illustrated revision walkthrough](docs/public/bracket-revision.md) for
+the actual before/after geometry, drawings and producing-run evidence.
 
 The comparison presently requires the same Aetheris pin on both sides. A compiler
 upgrade requires its own geometry qualification; the workflow fails explicitly
