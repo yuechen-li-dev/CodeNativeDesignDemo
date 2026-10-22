@@ -19,6 +19,13 @@ jobs:
       MSBUILDDISABLENODEREUSE: '1'
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout the exact PR base for comparison
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: dependencies/base-demo
+          persist-credentials: false
       - name: Read compiler pin
         id: compiler
         shell: pwsh
@@ -39,6 +46,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r requirements.txt
+      - name: Install PDF preview renderer
+        if: github.event_name == 'pull_request'
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Read managed compiler dependency pin
         id: wgsl
         shell: pwsh
@@ -67,6 +77,34 @@ jobs:
       - name: Build, export, and reconstruct from PDF alone
         shell: pwsh
         run: ./scripts/Qualify.ps1
+      - name: Build and qualify the PR base with the same compiler
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          ./dependencies/base-demo/scripts/Qualify.ps1 -AetherisRoot "$env:GITHUB_WORKSPACE/dependencies/aetheris" -OutputDirectory "$env:GITHUB_WORKSPACE/artifacts/local/base-build"
+      - name: Compare actual base and proposed artifacts
+        if: github.event_name == 'pull_request'
+        run: >-
+          python scripts/compare_revision.py
+          --before artifacts/local/base-build/deliverables
+          --after artifacts/local/build/deliverables
+          --output artifacts/local/review
+          --font dependencies/aetheris/Aetheris.Kernel.Firmament/Resources/Inter-Regular.ttf
+      - name: Upload before/after review pack
+        if: github.event_name == 'pull_request'
+        id: review
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-pr${{ github.event.pull_request.number }}-${{ github.sha }}
+          path: artifacts/local/review/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Link review pack in run summary
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          REVIEW_URL: ${{ steps.review.outputs.artifact-url }}
+        run: echo "[Download the before/after review pack]($REVIEW_URL) — open index.html after extracting." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload qualified parts
         uses: actions/upload-artifact@v4
         with:

@@ -22,14 +22,34 @@ the named millimetre dimensions in [src/Program.cs](src/Program.cs). Each call t
 
 | Dimension (mm) | Nominal | Variant |
 | --- | ---: | ---: |
-| Width / height / thickness | 80 / 60 / 12 | 100 / 75 / 15 |
+| Width / height / thickness | 96 / 60 / 12 | 100 / 75 / 15 |
 | Vertical / horizontal leg width | 20 / 20 | 25 / 24 |
-| Hole X / Y from lower-left O | 60 / 10 | 70 / 12 |
+| Hole X / Y from lower-left O | 76 / 10 | 70 / 12 |
 | Through / countersink entry diameter | 6 / 12 | 8 / 14 |
 
 Both countersinks have a 90-degree included angle. The drawing defines linear
 limits of ±0.1 mm and angular limits of ±0.5 degrees, material 6061-T6 aluminium,
 the origin, hole axis and top entry face. Checked/approved boxes stay blank.
+
+## Review a design revision
+
+Pull requests rebuild and qualify **both the exact PR base and the proposed
+revision**, using the same pinned compiler. The additional `review-pr<number>-<commit>`
+artifact contains both sets of deliverables and an offline `index.html` showing
+the parameter/volume changes, geometry at a common projection and scale, an
+origin-aligned top-view overlay, and full before/after drawing previews. Extract
+the ZIP before opening it. The original PDFs and STEP/GLB files are linked beside
+the previews; each side has its own qualification and PDF reconstruction evidence.
+
+The first proposed revision extends the nominal horizontal leg by 16 mm and moves
+H1 outward by 16 mm, preserving its 20 mm distance from the right edge. Thickness,
+leg widths, hole diameters and angle remain unchanged. The resized control part
+must retain byte-identical STEP and PDF. Git revisions identify the compared
+working states; the unsigned drawing family's planned release remains 1.0.0.
+
+The comparison presently requires the same Aetheris pin on both sides. A compiler
+upgrade requires its own geometry qualification; the workflow fails explicitly
+rather than silently substituting a compiler for a historical source revision.
 
 ## What you get
 
