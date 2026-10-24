@@ -1,0 +1,8 @@
+include "bracket-library.firmament";
+include "fastener-library.firmament";
+include "parameters.firmament";
+
+Model AssemblyBracket {
+    units: mm
+    Struct bracket = Bracket<spec: bracketSpec>
+}

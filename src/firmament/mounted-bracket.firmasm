@@ -1,0 +1,16 @@
+include "bracket-library.firmament";
+include "fastener-library.firmament";
+include "parameters.firmament";
+
+Interface<Fixed> CountersunkSeat { }
+Assembly MountedBracket {
+    <Assembly MountedBracket>
+        <Part Bracket = Bracket<spec: bracketSpec>></Part>
+        <Part Fastener = Fastener<spec: fastenerSpec>></Part>
+    </Assembly>
+    anchor: MountedBracket.Bracket;
+    Mate InstallFastener: CountersunkSeat {
+        A: MountedBracket.Bracket.FastenerSeat;
+        B: MountedBracket.Fastener.HeadSeat;
+    }
+}

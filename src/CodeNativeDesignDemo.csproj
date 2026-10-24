@@ -8,5 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(AetherisRoot)/demos/Aetheris.CodeNativeBracket/Aetheris.CodeNativeBracket.csproj" />
+    <None Update="firmament/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

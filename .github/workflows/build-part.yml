@@ -33,12 +33,28 @@ jobs:
           $pin = (Get-Content aetheris-revision.txt -Raw).Trim()
           if ($pin -notmatch '^[0-9a-f]{40}$') { throw 'Invalid Aetheris revision.' }
           "revision=$pin" >> $env:GITHUB_OUTPUT
+          if ('${{ github.event_name }}' -eq 'pull_request') {
+            $base = (Get-Content dependencies/base-demo/aetheris-revision.txt -Raw).Trim()
+            if ($base -notmatch '^[0-9a-f]{40}$') { throw 'Invalid base compiler revision.' }
+            "base=$base" >> $env:GITHUB_OUTPUT
+          }
       - uses: actions/checkout@v4
         with:
           repository: yuechen-li-dev/Aetheris
           ref: ${{ steps.compiler.outputs.revision }}
           path: dependencies/aetheris
           persist-credentials: false
+      - name: Checkout historical compiler for the upgrade control
+        if: github.event_name == 'pull_request' && steps.compiler.outputs.base != steps.compiler.outputs.revision
+        uses: actions/checkout@v4
+        with:
+          repository: yuechen-li-dev/Aetheris
+          ref: ${{ steps.compiler.outputs.base }}
+          path: dependencies/base-aetheris
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -65,23 +81,38 @@ jobs:
       - name: Prepare source-pinned dependency
         shell: pwsh
         working-directory: dependencies/aetheris
-        run: ./scripts/prepare-managed-wgsl.ps1 -CopelandRoot "$env:GITHUB_WORKSPACE/dependencies/copeland"
+        run: |
+          ./scripts/prepare-managed-wgsl.ps1 -CopelandRoot "$env:GITHUB_WORKSPACE/dependencies/copeland"
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency preparation failed.' }
+          if (Test-Path ../base-aetheris) {
+            $oldPin = (Get-Content ../base-aetheris/scripts/managed-wgsl-commit-pin.txt -Raw).Trim()
+            if ($oldPin -ne '${{ steps.wgsl.outputs.revision }}') { throw 'Historical compiler needs a separately pinned dependency checkout.' }
+            ../base-aetheris/scripts/prepare-managed-wgsl.ps1 -CopelandRoot "$env:GITHUB_WORKSPACE/dependencies/copeland"
+            if ($LASTEXITCODE -ne 0) { throw 'Historical dependency preparation failed.' }
+          }
       - name: Check bracket compiler regressions
         shell: pwsh
         working-directory: dependencies/aetheris
         run: |
           dotnet build Aetheris.Kernel.Firmament.Tests -c Release -m:1 -nr:false -p:UseSharedCompilation=false
           if ($LASTEXITCODE -ne 0) { throw 'Regression test build failed.' }
-          dotnet test Aetheris.Kernel.Firmament.Tests -c Release --no-build -m:1 -nr:false --filter "FullyQualifiedName~ComposedHoleFamilyTests|FullyQualifiedName~CodeNativeBracketRehearsalTests|FullyQualifiedName~PrismaticSectionStackHoleTraversalTests" --logger "trx;LogFileName=bracket.trx" --results-directory "$env:GITHUB_WORKSPACE/artifacts/local/tests" -- RunConfiguration.MaxCpuCount=1
+          dotnet test Aetheris.Kernel.Firmament.Tests -c Release --no-build -m:1 -nr:false --filter "FullyQualifiedName~ComposedHoleFamilyTests|FullyQualifiedName~CodeNativeBracketRehearsalTests|FullyQualifiedName~PrismaticSectionStackHoleTraversalTests|FullyQualifiedName~CodeNativeAssemblyRehearsalTests" --logger "trx;LogFileName=bracket.trx" --results-directory "$env:GITHUB_WORKSPACE/artifacts/local/tests" -- RunConfiguration.MaxCpuCount=1
           if ($LASTEXITCODE -ne 0) { throw 'Bracket regressions failed.' }
       - name: Build, export, and reconstruct from PDF alone
         shell: pwsh
         run: ./scripts/Qualify.ps1
-      - name: Build and qualify the PR base with the same compiler
+      - name: Build historical parts with the proposed compiler
         if: github.event_name == 'pull_request'
         shell: pwsh
         run: |
-          ./dependencies/base-demo/scripts/Qualify.ps1 -AetherisRoot "$env:GITHUB_WORKSPACE/dependencies/aetheris" -OutputDirectory "$env:GITHUB_WORKSPACE/artifacts/local/base-build"
+          ./scripts/Qualify.ps1 -DesignRoot "$env:GITHUB_WORKSPACE/dependencies/base-demo" -PartsOnly -CompilerControl -OutputDirectory "$env:GITHUB_WORKSPACE/artifacts/local/base-build"
+      - name: Qualify the compiler upgrade against the historical compiler
+        if: github.event_name == 'pull_request' && steps.compiler.outputs.base != steps.compiler.outputs.revision
+        shell: pwsh
+        run: |
+          ./dependencies/base-demo/scripts/Qualify.ps1 -AetherisRoot "$env:GITHUB_WORKSPACE/dependencies/base-aetheris" -OutputDirectory "$env:GITHUB_WORKSPACE/artifacts/local/base-original"
+          python scripts/compare_compiler.py --before artifacts/local/base-original/deliverables --after artifacts/local/base-build/deliverables --output artifacts/local/compiler-control.json
+          if ($LASTEXITCODE -ne 0) { throw 'Compiler upgrade changed historical artifacts.' }
       - name: Compare actual base and proposed artifacts
         if: github.event_name == 'pull_request'
         run: >-
@@ -90,6 +121,10 @@ jobs:
           --after artifacts/local/build/deliverables
           --output artifacts/local/review
           --font dependencies/aetheris/Aetheris.Kernel.Firmament/Resources/Inter-Regular.ttf
+      - name: Include compiler control in the review pack
+        if: github.event_name == 'pull_request' && steps.compiler.outputs.base != steps.compiler.outputs.revision
+        shell: pwsh
+        run: Copy-Item artifacts/local/compiler-control.json artifacts/local/review/compiler-control.json
       - name: Upload before/after review pack
         if: github.event_name == 'pull_request'
         id: review
@@ -105,13 +140,19 @@ jobs:
         env:
           REVIEW_URL: ${{ steps.review.outputs.artifact-url }}
         run: echo "[Download the before/after review pack]($REVIEW_URL) — open index.html after extracting." >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload qualified parts
+      - name: Upload qualified parts and assemblies
+        id: deliverables
         uses: actions/upload-artifact@v4
         with:
           name: bracket-${{ github.sha }}
           path: artifacts/local/build/deliverables/
           if-no-files-found: error
           retention-days: 30
+      - name: Link engineering artifacts
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.deliverables.outputs.artifact-url }}
+        run: echo "[Download qualified assembly STEP/glTF and bracket PDF drawings]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v4
