@@ -1,0 +1,8 @@
+include "bracket-library.firmament";
+include "fastener-library.firmament";
+include "parameters.firmament";
+
+Model CodeNativeFastener {
+    units: mm
+    Struct fastener = Fastener<spec: fastenerSpec>
+}

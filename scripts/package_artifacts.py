@@ -19,7 +19,7 @@ def read_json(path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def stage(source, destination, aetheris_revision):
+def stage(source, destination, aetheris_revision, repository, source_compiler, parts_only):
     require(not destination.exists(), "Use a fresh output directory; deliverables already exist.")
     cases = {}
     files = ["bracket.firmament", "bracket-drawing.firmament", "Bracket.step",
@@ -60,10 +60,18 @@ def stage(source, destination, aetheris_revision):
         for filename in files:
             shutil.copy2(directory / filename, target / filename)
         shutil.copytree(directory / "pdf-reconstruction", target / "pdf-reconstruction")
-    repository = Path(__file__).resolve().parents[1]
+        if not parts_only:
+            require((directory / "assembly/qualification.json").is_file(), f"{name}: required assembly qualification missing")
+            assembly = read_json(directory / "assembly/qualification.json")
+            require(assembly["status"] == "passed", f"{name}: assembly not qualified")
+            for filename, expected in assembly["hashes"].items():
+                require(hashlib.sha256((directory / "assembly" / filename).read_bytes()).hexdigest() == expected,
+                        f"{name}: assembly artifact changed: {filename}")
+            shutil.copytree(directory / "assembly", target / "assembly")
+            cases[name]["assembly"] = assembly
     demo_revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     result = {"schema": "code-native-design-demo/1", "aetherisRevision": aetheris_revision,
-              "demoRevision": demo_revision,
+              "demoRevision": demo_revision, "sourceCompilerRevision": source_compiler,
               "demoSourceDirty": bool(subprocess.check_output(
                   ["git", "status", "--porcelain", "--untracked-files=normal"], cwd=repository, text=True).strip()),
               "runUrl": (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
@@ -78,6 +86,10 @@ def stage(source, destination, aetheris_revision):
                           "Both PDFs independently reconstructed; 18 incomplete-drawing guards rejected. "
                           "STEP and GLB retain datum/shaft PMI. Checked/approved remain blank.\n\n"
                           f"Aetheris: `{aetheris_revision}`\n")
+            if all('assembly' in cases[c] for c in ('nominal', 'variant')):
+                summary.write("\nBoth two-component assemblies qualify: named seat mate, 0.5 mm × 45° tip chamfer, "
+                              "STEP product-structure roundtrip, GLB world bounds and hole-relocation guard. "
+                              "Part PMI stays part-owned.\n")
 
 
 if __name__ == "__main__":
@@ -85,8 +97,11 @@ if __name__ == "__main__":
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--aetheris", required=True)
+    parser.add_argument("--design-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--source-compiler", required=True)
+    parser.add_argument("--parts-only", action='store_true', help='Historical compiler control: no assembly expected')
     args = parser.parse_args()
     try:
-        stage(args.input, args.output, args.aetheris)
+        stage(args.input, args.output, args.aetheris, args.design_root, args.source_compiler, args.parts_only)
     except (ValueError, KeyError, OSError) as error:
         sys.exit(str(error))
