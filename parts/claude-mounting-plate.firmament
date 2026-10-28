@@ -1,0 +1,18 @@
+// Contributed by Claude (agent) as the first agent-authored part in this repo.
+// A 50 x 40 x 8 mm mounting plate with R3 rounded vertical edges, four 5.5 mm
+// corner holes 6 mm in from each side, and an 8 mm centre hole.
+// The vertical edges are rounded in the profile (RoundedRect2), which keeps them exact.
+Model ClaudeMountingPlate {
+    Units: mm
+    Profile Outline = RoundedRect2 { center: [0mm, 0mm]; size: [50mm, 40mm]; radius: 3mm }
+    Compose Plate {
+        Base Stock { Profile: Outline; From: 0mm; To: 8mm; Role: Stock }
+    }
+    Modify Plate {
+        Hole<Shaft> CenterMount { On: +Z Center: Point2(0mm, 0mm) Diameter: 8mm End: ThroughAll }
+        Hole<Shaft> CornerA { On: +Z Center: Point2(19mm, 14mm) Diameter: 5.5mm End: ThroughAll }
+        Hole<Shaft> CornerB { On: +Z Center: Point2(-19mm, 14mm) Diameter: 5.5mm End: ThroughAll }
+        Hole<Shaft> CornerC { On: +Z Center: Point2(-19mm, -14mm) Diameter: 5.5mm End: ThroughAll }
+        Hole<Shaft> CornerD { On: +Z Center: Point2(19mm, -14mm) Diameter: 5.5mm End: ThroughAll }
+    }
+}
