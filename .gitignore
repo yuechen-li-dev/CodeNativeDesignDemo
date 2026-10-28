@@ -57,3 +57,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Local part builds write STEP beside the source; CI publishes them as artifacts.
+parts/*.step
+parts/*.stl

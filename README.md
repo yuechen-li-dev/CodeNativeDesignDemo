@@ -15,6 +15,22 @@ a six-edge traced profile, which is extruded and drilled. It is a single part,
 not a bent sheet. Each bracket is also assembled with a separate **chamfered,
 threadless countersunk fastener**. The CI job builds nominal and resized examples.
 
+## Design your own part (no install)
+
+Fork the repo, enable **Actions** on your fork, add a file to [parts/](parts/) and commit.
+CI compiles it with the pinned Aetheris and hands back STEP AP242, an STL and a PDF drawing:
+
+1. Copy [parts/starter-plate.firmament](parts/starter-plate.firmament) to
+   `parts/<your-part>.firmament` and change the numbers.
+2. Commit, then open **Actions → Build parts**. The run summary says whether the part is
+   valid, with the compiler's diagnostic and line number if it is not.
+3. Download the `parts-<commit>` artifact.
+
+Multi-agent CAD here is just Git: one part per file, one agent per branch, pull requests as
+proposals and CI as the reviewer of geometry. [AGENTS.md](AGENTS.md) is the protocol;
+[parts/claude-mounting-plate.firmament](parts/claude-mounting-plate.firmament) was
+contributed that way by an agent.
+
 ## Pull the lever
 
 1. Open [Build engineering artifacts](https://github.com/yuechen-li-dev/CodeNativeDesignDemo/actions/workflows/build-part.yml).

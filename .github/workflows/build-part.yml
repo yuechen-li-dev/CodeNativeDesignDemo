@@ -3,7 +3,9 @@ name: Build engineering artifacts
 on:
   push:
     branches: [main]
+    paths-ignore: ['parts/**', 'scripts/build_parts.py', '.github/workflows/parts.yml', 'AGENTS.md']
   pull_request:
+    paths-ignore: ['parts/**', 'scripts/build_parts.py', '.github/workflows/parts.yml', 'AGENTS.md']
   workflow_dispatch:
 
 permissions:
