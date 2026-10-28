@@ -1,0 +1,12 @@
+// Starter part. Copy this file, rename it, change the numbers and push:
+// CI builds every .firmament file in parts/ into STEP, STL and a dimensioned PDF drawing.
+// All lengths carry units. Hole centres are measured from the middle of the top face.
+Model StarterPlate {
+    Units: mm
+    Box Plate { Size: [100mm, 60mm, 10mm] }
+    Modify Plate {
+        Hole<Shaft> Mount { On: +Z Center: Point2(0mm, 0mm) Diameter: 8mm End: ThroughAll }
+        Hole<Shaft> Left { On: +Z Center: Point2(-25mm, 0mm) Diameter: 6mm End: ThroughAll }
+        Hole<Shaft> Right { On: +Z Center: Point2(25mm, 0mm) Diameter: 6mm End: ThroughAll }
+    }
+}

@@ -1,0 +1,109 @@
+name: Build parts
+
+# Every parts/*.firmament file becomes STEP AP242, an STL and a drawing.
+# Runs in forks too: enable Actions on your fork, push a part, download the artifact.
+on:
+  push:
+    paths: ['parts/**', 'scripts/build_parts.py', 'aetheris-revision.txt', '.github/workflows/parts.yml']
+  pull_request:
+    paths: ['parts/**', 'scripts/build_parts.py', 'aetheris-revision.txt', '.github/workflows/parts.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read compiler pin
+        id: compiler
+        shell: pwsh
+        run: |
+          $pin = (Get-Content aetheris-revision.txt -Raw).Trim()
+          if ($pin -notmatch '^[0-9a-f]{40}$') { throw 'Invalid Aetheris revision.' }
+          "revision=$pin" >> $env:GITHUB_OUTPUT
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # The compiler is built once per pinned revision and reused from the cache.
+      - name: Restore pinned compiler
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: dependencies/aetheris-cli
+          key: aetheris-cli-${{ steps.compiler.outputs.revision }}-v1
+      - name: Checkout pinned Aetheris
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: yuechen-li-dev/Aetheris
+          ref: ${{ steps.compiler.outputs.revision }}
+          path: dependencies/aetheris
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          node-version: '24'
+      - name: Read managed compiler dependency pin
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: wgsl
+        shell: pwsh
+        run: |
+          $pin = (Get-Content dependencies/aetheris/scripts/managed-wgsl-commit-pin.txt -Raw).Trim()
+          if ($pin -notmatch '^[0-9a-f]{40}$') { throw 'Invalid managed compiler revision.' }
+          "revision=$pin" >> $env:GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          repository: yuechen-li-dev/Copeland
+          ref: ${{ steps.wgsl.outputs.revision }}
+          path: dependencies/copeland
+          persist-credentials: false
+      - name: Build pinned compiler
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        working-directory: dependencies/aetheris
+        run: |
+          ./scripts/prepare-managed-wgsl.ps1 -CopelandRoot "$env:GITHUB_WORKSPACE/dependencies/copeland"
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency preparation failed.' }
+          dotnet build Aetheris.CLI -c Release -m:1 -nr:false -p:UseSharedCompilation=false
+          if ($LASTEXITCODE -ne 0) { throw 'CLI build failed.' }
+          Copy-Item -Recurse Aetheris.CLI/bin/Release/net10.0 "$env:GITHUB_WORKSPACE/dependencies/aetheris-cli"
+      - name: Build every part
+        run: >-
+          python scripts/build_parts.py
+          --cli dependencies/aetheris-cli/aetheris.dll
+          --output artifacts/local/parts
+          --revision ${{ steps.compiler.outputs.revision }}
+      - name: Report results
+        if: always()
+        run: |
+          if [ -f artifacts/local/parts/summary.md ]; then cat artifacts/local/parts/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload parts
+        if: always()
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: parts-${{ github.sha }}
+          path: artifacts/local/parts/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Link parts
+        if: always() && steps.upload.outputs.artifact-url != ''
+        env:
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: echo "[Download STEP, STL and drawings]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
